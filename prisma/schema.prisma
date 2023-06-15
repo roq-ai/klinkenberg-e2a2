@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model appointment {
+  id                                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  start_time                           DateTime @db.Timestamp(6)
+  end_time                             DateTime @db.Timestamp(6)
+  student_id                           String   @db.Uuid
+  instructor_id                        String   @db.Uuid
+  created_at                           DateTime @default(now()) @db.Timestamp(6)
+  updated_at                           DateTime @default(now()) @db.Timestamp(6)
+  user_appointment_instructor_idTouser user     @relation("appointment_instructor_idTouser", fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_appointment_student_idTouser    user     @relation("appointment_student_idTouser", fields: [student_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model availability {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  start_time    DateTime @db.Timestamp(6)
+  end_time      DateTime @db.Timestamp(6)
+  instructor_id String   @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+  user          user     @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model school {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String?  @db.VarChar
+  image       String?  @db.VarChar
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                                          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                       String         @unique @db.VarChar(255)
+  firstName                                   String?        @db.VarChar(255)
+  lastName                                    String?        @db.VarChar(255)
+  roq_user_id                                 String         @db.VarChar(255)
+  tenant_id                                   String         @db.VarChar(255)
+  created_at                                  DateTime       @default(now()) @db.Timestamp(6)
+  updated_at                                  DateTime       @default(now()) @db.Timestamp(6)
+  appointment_appointment_instructor_idTouser appointment[]  @relation("appointment_instructor_idTouser")
+  appointment_appointment_student_idTouser    appointment[]  @relation("appointment_student_idTouser")
+  availability                                availability[]
+  school                                      school[]
+}
